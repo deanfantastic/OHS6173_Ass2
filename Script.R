@@ -76,7 +76,7 @@ for (i in 1:length(result_df$SEG)){
     # WES, adj & LOD from the agent_list table into each row
     result_df$WES[i] <- subset(agent_list$WES,agent_list$agent==result_df$agent[i])
     result_df$LOD[i] <- subset(agent_list$LOD,agent_list$agent==result_df$agent[i])    
-    result_df$WES_adj[i] <- as.numeric(result_df$WES[i])*min(subset(roster_list$adj,roster_list$SEG==result_df$SEG[i]))
+    result_df$WES_adj[i] <- format(as.numeric(result_df$WES[i])*min(subset(roster_list$adj,roster_list$SEG==result_df$SEG[i])), digits=sig_digit)
      
     if (result_df$count[i]>2){
       # check if data is normally distributed
@@ -84,7 +84,7 @@ for (i in 1:length(result_df$SEG)){
       result_df$shapiroLin[i] <- format(shapiro_result$p.value,digits=sig_digit)
       if (shapiro_result$p.value > 0.05){ # set shape to linear if > 0.05
         result_df$shape[i] <- "lin"
-        } 
+      } 
       
       if(result_df$shapiroLin[i] <= 0.05){
         #check if data is lognormal
@@ -92,16 +92,18 @@ for (i in 1:length(result_df$SEG)){
         result_df$shapiroLog[i] <- format(shapiro_result$p.value, digits=sig_digit)
         if (shapiro_result$p.value > 0.05){
           result_df$shape[i] <- "log"
-          }
+        }else{
+          result_df$shape[i] <- "Non"  
         }
+      }
       
       
       # Based on result_df$shape > calculate the 95th percentile
       if(result_df$shape[i]=="lin"){
         result_df$P95[i] <- format(as.numeric(result_df$mean[i])+as.numeric(result_df$SD[i])*1.645, digits=sig_digit)
-        }else{
-          result_df$P95[i]=format(as.numeric(result_df$GM[i])*as.numeric(result_df$GSD[i])^1.634,digits=sig_digit)
-        }
+      }else{
+        result_df$P95[i]=format(as.numeric(result_df$GM[i])*as.numeric(result_df$GSD[i])^1.634,digits=sig_digit)
+      }
       
       
       # create two columns with the mean and P95 as a proportion of the WES (after adjustment)
@@ -111,9 +113,9 @@ for (i in 1:length(result_df$SEG)){
       result_df$P95_WES[i]  <- format(as.numeric(result_df$P95[i])/as.numeric(result_df$WES[i]),digits=sig_digit)
       
 
-      }
     }
   }
+}
 
 # export the results_df as xlsx file
 write.xlsx(result_df, file=paste("summary-", format(Sys.Date(),format="%Y%m%d") ,"_",format(Sys.time(),format="%H%M%S"),".xlsx",sep=""), sheetName = "Summary", 
